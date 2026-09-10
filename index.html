@@ -595,12 +595,16 @@
           <button class="cycle-btn" data-weeks="8" onclick="selectCompleteCycle(8)">8周</button>
         </div>
       </div>
-      <div class="form-group" style="margin-bottom:0;">
+      <div class="form-group" style="margin-bottom:12px;">
         <label>下次复诊日期（可手动调整）</label>
         <input type="date" id="completeNextDate">
       </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>本次复诊备注（可选）</label>
+        <textarea id="completeNote" rows="2" style="width:100%;padding:8px 12px;border:1px solid var(--border,#E5E7EB);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;" placeholder="例如：换弓丝、加力、佩戴情况良好、下次准备粘托槽..."></textarea>
+      </div>
       <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-        💡 根据选择的周期自动计算，也可以手动修改
+        💡 下次日期根据周期自动计算，也可手动修改；备注会记入复诊历史
       </p>
     </div>
     <div class="modal-footer">
@@ -629,6 +633,34 @@
     <div class="modal-footer">
       <div class="modal-footer-actions" style="margin-left:auto;">
         <button class="btn-confirm" onclick="closeModal('historyModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome Modal -->
+<div class="modal-mask" id="welcomeModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">🦷 欢迎使用正畸复诊管理</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;font-size:44px;margin-bottom:8px;">🦷</div>
+      <p style="font-size:14px;line-height:1.7;color:var(--text);margin:0 0 12px;">
+        这是一个帮你管理患者复诊日期的小工具。录入患者后，系统会自动按复诊日期排序，<b style="color:#EF4444;">超期标红</b>、<b style="color:#F59E0B;">7天内标黄</b>、<b style="color:#10B981;">正常标绿</b>。
+      </p>
+      <div style="background:#F9FAFB;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--text-muted);margin-bottom:8px;">
+        🔒 <b style="color:var(--text);">数据隐私说明</b><br>
+        所有患者信息只保存在<b>你当前这台设备的浏览器里</b>，不会上传到任何服务器。每个人打开都是独立空白，互不影响。
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0;">
+        💡 建议用同一台电脑、同一个浏览器打开，并收藏本网址，方便随时使用。
+      </p>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-actions" style="margin-left:auto;gap:8px;">
+        <button class="btn-cancel" onclick="loadDemoData()">先看示例</button>
+        <button class="btn-confirm" onclick="closeModal('welcomeModal');setTimeout(showAddModal,100);">开始添加患者</button>
       </div>
     </div>
   </div>
@@ -772,8 +804,23 @@
         }
       }
     } catch (e) { console.warn('加载失败:', e); }
-    data = JSON.parse(JSON.stringify(defaultData));
+    // 新用户从空白开始，各自独立填写、互不影响
+    data = { fixed: [], invisible: [] };
     return false;
+  }
+  // 载入示例数据（供新用户体验）
+  function loadDemoData() {
+    data = JSON.parse(JSON.stringify(defaultData));
+    saveData();
+    renderList();
+    closeModal('welcomeModal');
+  }
+  // 清空全部患者（重置为空白）
+  function clearAllPatients() {
+    if (!confirm('确定要清空当前分类下的所有患者吗？此操作不可恢复。')) return;
+    data[currentType] = [];
+    saveData();
+    renderList();
   }
   function saveData() {
     try {
@@ -950,12 +997,25 @@
     const container = document.getElementById('patientList');
 
     if (filtered.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">📭</div>
-          <div class="empty-text">没有符合条件的患者</div>
-        </div>
-      `;
+      const hasAny = list.length > 0;
+      if (!hasAny) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🦷</div>
+            <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;">还没有患者信息</div>
+            <div class="empty-text" style="margin-bottom:18px;">点击下方按钮添加你的第一位患者，数据会自动保存在这台设备上</div>
+            <button class="btn-confirm" onclick="showAddModal()" style="padding:9px 22px;font-size:14px;">＋ 添加患者</button>
+            <div style="margin-top:14px;"><a href="javascript:void(0)" onclick="loadDemoData()" style="font-size:12px;color:var(--primary,#6366F1);text-decoration:underline;">先载入示例数据看看效果</a></div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-text">没有符合条件的患者</div>
+          </div>
+        `;
+      }
     } else {
       let html = '';
 
@@ -1173,6 +1233,9 @@
     const nextDate = addWeeks(today(), completeCycleWeeks);
     document.getElementById('completeNextDate').value = nextDate;
 
+    // 清空上次备注
+    document.getElementById('completeNote').value = '';
+
     openModal('completeModal');
   }
 
@@ -1190,6 +1253,7 @@
   function confirmComplete() {
     const visitDate = document.getElementById('completeVisitDate').value;
     const nextDate = document.getElementById('completeNextDate').value;
+    const note = document.getElementById('completeNote').value.trim();
     if (!visitDate) { alert('请选择本次复诊日期'); return; }
 
     const p = data[currentType][completePatientIndex];
@@ -1198,7 +1262,8 @@
     p.history.unshift({
       visitDate: visitDate,
       nextDate: nextDate || '',
-      cycleWeeks: completeCycleWeeks
+      cycleWeeks: completeCycleWeeks,
+      note: note
     });
     // 更新下次日期和周期
     p.nextDate = nextDate || '';
@@ -1238,6 +1303,7 @@
           <div>
             <div class="history-date">第 ${history.length - i} 次 · ${h.visitDate || '未知日期'}</div>
             <div class="history-next">下次复诊：${h.nextDate || '未设置'}${h.cycleWeeks ? `（${h.cycleWeeks}周周期）` : ''}</div>
+            ${h.note ? `<div class="history-note">📝 ${h.note}</div>` : ''}
           </div>
         </div>
       `).join('');
@@ -1307,9 +1373,17 @@
 
   // 初始化
   loadTags();
-  loadData();
+  const hadSavedData = loadData();
   renderTagFilterBar();
   renderList();
+
+  // 首次使用（无任何存档）显示欢迎引导
+  try {
+    if (!hadSavedData && !localStorage.getItem('ortho_welcome_seen')) {
+      localStorage.setItem('ortho_welcome_seen', '1');
+      setTimeout(() => openModal('welcomeModal'), 300);
+    }
+  } catch (e) {}
 
   // 每分钟刷新
   setInterval(renderList, 60000);
