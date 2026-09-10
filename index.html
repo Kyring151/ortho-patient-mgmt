@@ -515,6 +515,13 @@
       <button class="btn btn-accent" onclick="exportExcel()">
         <span>📊</span> 导出Excel
       </button>
+      <button class="btn btn-secondary" onclick="exportBackup()">
+        <span>💾</span> 备份数据
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+        <span>📂</span> 导入数据
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(event)">
       <button class="btn btn-primary" onclick="showAddModal()">
         <span>+</span> 添加患者
       </button>
@@ -712,7 +719,36 @@
   let TAGS = [];
 
   // ========== 默认数据 ==========
-  const defaultData = {"fixed": [{"name": "杨晨瑶", "nextDate": "2026-10-05", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "田轩仪", "nextDate": "2026-09-13", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "徐雅奇", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李昱霏", "nextDate": "2026-09-12", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张展", "nextDate": "2026-10-07", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "刘若熙", "nextDate": "2026-07-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王可欣", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "高屹煊", "nextDate": "2026-09-15", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "邸晨函", "nextDate": "2026-09-14", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张珈宁", "nextDate": "2026-10-04", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "叶联英", "nextDate": "2026-10-03", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "文新浩", "nextDate": "2026-09-14", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "靳奥轩", "nextDate": "2026-09-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王诗彤", "nextDate": "2026-09-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "郑程远", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "甄子函", "nextDate": "2026-10-04", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈浩博", "nextDate": "2026-09-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "谢婉晴", "nextDate": "2026-09-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "窦孟泽", "nextDate": "2026-09-12", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "赵凤", "nextDate": "2026-10-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "许心迎", "nextDate": "2026-09-27", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "肖一萌", "nextDate": "2026-09-24", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "宋炳妍", "nextDate": "2026-09-27", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张夏涵", "nextDate": "2026-10-05", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈佳涛", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李承蕊", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "梁思淇", "nextDate": "2026-09-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "史嵬建", "nextDate": "2026-09-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "殷雨诺", "nextDate": "2026-09-19", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "薛浩桐", "nextDate": "", "note": "", "cycleWeeks": 4, "tags": [], "finished": true, "history": []}, {"name": "郑婧桐", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王珈瑜", "nextDate": "", "note": "", "cycleWeeks": 4, "tags": [], "finished": true, "history": []}, {"name": "刘飞宇", "nextDate": "2026-09-11", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张家润", "nextDate": "2026-09-08", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "刘玥怡", "nextDate": "2026-09-25", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "颜雨菲", "nextDate": "2026-09-23", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "颜星宇", "nextDate": "2026-09-23", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "姜泽航", "nextDate": "", "note": "", "cycleWeeks": 4, "tags": [], "finished": true, "history": []}, {"name": "赵一淼", "nextDate": "2026-10-01", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "冯怡萱", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王天扬", "nextDate": "2026-09-15", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李嘉毅", "nextDate": "2026-09-08", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "段文硕", "nextDate": "2026-09-28", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "向佳旭", "nextDate": "2026-09-11", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "邢睿文", "nextDate": "2026-09-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李嘉泽", "nextDate": "2026-09-29", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "靳一诺", "nextDate": "2026-08-23", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "秦子豪", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "魏子文", "nextDate": "2026-08-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "胡博", "nextDate": "2026-09-24", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王翊伦", "nextDate": "2026-09-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈昆静", "nextDate": "2026-09-27", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "薛祎纯", "nextDate": "2026-09-28", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "薛祎灥", "nextDate": "2026-09-28", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "殷诗琴", "nextDate": "2026-09-14", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王禹宸", "nextDate": "2026-09-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "赵森源", "nextDate": "2026-09-29", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张栎萱", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "冯伊涵", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王启彤", "nextDate": "2026-10-05", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王雨璇", "nextDate": "2026-09-08", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "阴曼溪", "nextDate": "2026-09-08", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "杨紫涵", "nextDate": "2026-09-08", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "谷芊念", "nextDate": "2026-09-12", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "任梓彤", "nextDate": "2026-09-24", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "崔茜雅", "nextDate": "2026-09-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张轩豪", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈奕彤", "nextDate": "2026-10-05", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "佟宇彤", "nextDate": "2026-09-16", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王景弘", "nextDate": "2026-09-11", "note": "上颌2*4矫治", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "赵文畅", "nextDate": "2026-09-24", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "朱毅琛", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "冯一洋", "nextDate": "2026-09-16", "note": "VANBEEK矫治器", "cycleWeeks": 4, "tags": ["tag_removable"], "finished": false, "history": []}, {"name": "李津帆", "nextDate": "2026-09-01", "note": "FRIII矫治器", "cycleWeeks": 4, "tags": ["tag_functional"], "finished": false, "history": []}, {"name": "李康奇", "nextDate": "2026-07-21", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "孟维笑", "nextDate": "2026-09-08", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "连一朵", "nextDate": "2026-09-09", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "孙雨川", "nextDate": "2026-09-18", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "朱沐辰", "nextDate": "2206-09-23", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "于子乐", "nextDate": "2026-09-12", "note": "颌垫舌簧+舌栅", "cycleWeeks": 4, "tags": ["tag_removable"], "finished": false, "history": []}, {"name": "马宇昕", "nextDate": "2026-09-13", "note": "颌垫舌簧", "cycleWeeks": 4, "tags": ["tag_removable"], "finished": false, "history": []}, {"name": "王恩泽", "nextDate": "2026-09-12", "note": "上颌固定快扩", "cycleWeeks": 4, "tags": ["tag_fixed_expansion"], "finished": false, "history": []}, {"name": "刘议禧", "nextDate": "2026-09-17", "note": "FRIII矫治器", "cycleWeeks": 4, "tags": ["tag_functional"], "finished": false, "history": []}, {"name": "安伊晨", "nextDate": "2026-09-12", "note": "颌垫舌簧", "cycleWeeks": 4, "tags": ["tag_removable"], "finished": false, "history": []}, {"name": "刘子榆", "nextDate": "2026-10-05", "note": "OER肌功能矫治器", "cycleWeeks": 4, "tags": ["tag_functional"], "finished": false, "history": []}, {"name": "李尚美", "nextDate": "2026-10-06", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "陈九遇", "nextDate": "2026-09-09", "note": "上半口固定矫治", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "马卓函", "nextDate": "2026-09-09", "note": "上颌固定下颌隐形", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李昱辰", "nextDate": "2026-09-15", "note": "下颌托槽未粘结", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈鹏烁", "nextDate": "2026-09-15", "note": "下颌托槽未粘结", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "朱欣彤", "nextDate": "2026-09-29", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "张子骞", "nextDate": "2026-09-24", "note": "下颌托槽未粘结", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "郑思琪", "nextDate": "2026-09-30", "note": "前方牵引", "cycleWeeks": 4, "tags": ["tag_anterior_traction"], "finished": false, "history": []}, {"name": "张珊", "nextDate": "2026-09-25", "note": "下颌托槽未粘结", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "宋雨轩", "nextDate": "2026-10-05", "note": "下颌托槽未粘结", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "高乐涵", "nextDate": "2026-09-24", "note": "隐形", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王伊诺", "nextDate": "2026-09-19", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "黄裕涵", "nextDate": "2026-09-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "郭梦涵", "nextDate": "2026-09-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "石雨萱", "nextDate": "2026-09-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "康嘉芸", "nextDate": "2026-09-12", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "张译文", "nextDate": "2026-09-13", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王俊哲", "nextDate": "2026-09-14", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "侯天悦", "nextDate": "2026-09-15", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李洺城", "nextDate": "2026-09-13", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "孟晨怡", "nextDate": "2026-09-17", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "龚芊羽", "nextDate": "2026-10-01", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "于君睿", "nextDate": "2026-09-26", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "李欣怡", "nextDate": "2026-09-29", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "苏韵诗情", "nextDate": "2026-10-09", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "梁思淇", "nextDate": "2026-09-30", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "陈明悦", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}, {"name": "王静", "nextDate": "2026-10-06", "note": "", "cycleWeeks": 4, "tags": [], "finished": false, "history": []}], "invisible": [{"name": "佘梓铭", "nextDate": "2026-06-20", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李佳毅", "nextDate": "2026-08-15", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "槐福康", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "马卓函", "nextDate": "2026-06-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "闫好", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "化咏仪", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "魏煜丰", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李妙言", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "杨若雯", "nextDate": "2026-06-20", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "范伯楠", "nextDate": "2026-06-11", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "薛美娟", "nextDate": "2026-05-15", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "陈茜", "nextDate": "2026-06-25", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "孙佳萌", "nextDate": "2026-05-22", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "张馨心", "nextDate": "2026-06-30", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "张艳平", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "赵喧", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "杜鑫曼", "nextDate": "2026-04-02", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "张凤", "nextDate": "2026-05-14", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王诗依", "nextDate": "2026-08-20", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "陈安琪", "nextDate": "2026-05-16", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "管嘉欣", "nextDate": "2025-07-02", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "庄雨萱", "nextDate": "2026-08-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "高鑫蕊", "nextDate": "2026-08-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "牛小雨", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李兴雨", "nextDate": "2026-06-15", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "侯佳俊", "nextDate": "2026-07-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "张建宇", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王琪", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "朱思颖", "nextDate": "2026-09-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "刘天宇", "nextDate": "2026-07-07", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "张辰懿", "nextDate": "2026-07-14", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李墨竹", "nextDate": "2026-06-16", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李祯熙", "nextDate": "2026-07-05", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "苏韵诗情", "nextDate": "2026-06-26", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "孙正宇", "nextDate": "2026-06-07", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "马艳芳", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "谢欣苗", "nextDate": "2026-07-10", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "赵宇轩", "nextDate": "2026-07-04", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王语露", "nextDate": "2026-07-31", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李雨泽", "nextDate": "2026-06-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王润泽", "nextDate": "2026-06-09", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "刘姿蔓", "nextDate": "2026-06-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李雨舒", "nextDate": "2026-07-30", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "曹佳妍", "nextDate": "2026-06-10", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "杨子怡", "nextDate": "2026-07-16", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "曹世鑫", "nextDate": "2026-07-10", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "袁傲宸", "nextDate": "2026-06-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王娇娇", "nextDate": "2026-06-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "陈裕晗", "nextDate": "2026-06-18", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "陈明悦", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "许一", "nextDate": "2026-05-14", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王敬轩", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "高露涵", "nextDate": "2026-06-08", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "杜艾诺", "nextDate": "2026-05-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "杨耀佳", "nextDate": "2026-07-13", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "阴天硕", "nextDate": "2026-06-10", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "孙康朔", "nextDate": "2026-06-29", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "李昕诺", "nextDate": "2026-06-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}, {"name": "王静", "nextDate": "2026-07-01", "note": "", "cycleWeeks": 4, "tags": ["tag_invisible_adult"], "finished": false, "history": []}]};
+  // 演示用的虚拟数据（与真实患者无关，日期相对今天动态生成）
+  function buildDemoData() {
+    const t = today();
+    const d = offset => { const x = new Date(t); x.setDate(x.getDate() + offset); return formatDateStr(x); };
+    const mk = (name, nextDate, tags, note, extra) => Object.assign(
+      { name: name, nextDate: nextDate, note: note || '', cycleWeeks: 4, tags: tags || [], finished: false, history: [] },
+      extra || {}
+    );
+    return {
+      fixed: [
+        mk('张伟', d(-8), ['tag_fixed_adult'], '超期未到，需电话联系', { history: [ { visitDate: d(-36), nextDate: d(-8), cycleWeeks: 4, note: '更换镍钛圆丝，轻度加力' } ] }),
+        mk('王芳', d(-2), ['tag_fixed_teen'], ''),
+        mk('李娜', d(3), ['tag_fixed_teen'], ''),
+        mk('刘洋', d(6), ['tag_anterior_traction'], '前方牵引中'),
+        mk('陈静', d(15), ['tag_fixed_adult'], ''),
+        mk('杨磊', d(28), ['tag_fixed_teen'], ''),
+        mk('赵敏', '', [], '', { finished: true }),
+        mk('黄强', d(45), ['tag_fixed_expansion'], '固定扩弓')
+      ],
+      invisible: [
+        mk('周杰', d(-5), ['tag_invisible_adult'], ''),
+        mk('吴婷', d(2), ['tag_invisible_teen'], ''),
+        mk('徐涛', d(12), ['tag_invisible_adult'], ''),
+        mk('孙丽', d(33), ['tag_invisible_teen'], '佩戴配合度好'),
+        mk('马超', '', ['tag_invisible_adult'], '', { finished: true }),
+        mk('朱琳', d(21), ['tag_invisible_adult'], '', { cycleWeeks: 8 })
+      ]
+    };
+  }
+
 
   let data = { fixed: [], invisible: [] };
   let currentType = 'fixed';
@@ -810,7 +846,7 @@
   }
   // 载入示例数据（供新用户体验）
   function loadDemoData() {
-    data = JSON.parse(JSON.stringify(defaultData));
+    data = buildDemoData();
     saveData();
     renderList();
     closeModal('welcomeModal');
@@ -1356,6 +1392,129 @@
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
     XLSX.writeFile(wb, `${typeName}患者复诊表_${dateStr}.xlsx`);
+  }
+
+  // ========== 数据备份 / 导入 ==========
+  // 导出完整备份（患者 + 标签 + 导出时间）
+  function exportBackup() {
+    const total = (data.fixed || []).length + (data.invisible || []).length;
+    if (total === 0) {
+      if (!confirm('当前还没有患者数据，确定要导出一个空备份吗？')) return;
+    }
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const backup = {
+      app: 'ortho-patient-mgmt',
+      version: 3,
+      exportedAt: now.toISOString(),
+      exportedAtLocal: `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      patients: data,
+      tags: TAGS
+    };
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob(['\ufeff' + json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `正畸复诊备份_${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showSaveTip();
+  }
+
+  // 导入备份文件
+  function importBackup(event) {
+    const fileInput = event.target;
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let backup;
+      try {
+        const text = e.target.result.replace(/^\ufeff/, '');
+        backup = JSON.parse(text);
+      } catch (err) {
+        alert('文件无法识别，请选择本工具导出的 .json 备份文件。');
+        fileInput.value = '';
+        return;
+      }
+
+      // 兼容多种结构
+      let importedPatients = null;
+      let importedTags = null;
+      if (backup && backup.app === 'ortho-patient-mgmt' && backup.patients) {
+        importedPatients = backup.patients;
+        importedTags = backup.tags || null;
+      } else if (backup && backup.fixed && backup.invisible) {
+        importedPatients = backup;
+      } else {
+        alert('备份文件格式不正确：缺少患者数据。');
+        fileInput.value = '';
+        return;
+      }
+
+      const fixed = Array.isArray(importedPatients.fixed) ? importedPatients.fixed : [];
+      const invisible = Array.isArray(importedPatients.invisible) ? importedPatients.invisible : [];
+      const incomingCount = fixed.length + invisible.length;
+      const currentCount = (data.fixed || []).length + (data.invisible || []).length;
+
+      let mode = 'replace';
+      if (currentCount > 0) {
+        const choice = confirm(
+          `备份中共有 ${incomingCount} 名患者（固定 ${fixed.length} 人 / 隐形 ${invisible.length} 人）。\n\n` +
+          `当前已有 ${currentCount} 名患者。\n\n` +
+          `点击【确定】= 覆盖现有数据（推荐，完整还原备份）\n` +
+          `点击【取消】= 合并追加（保留现有，把备份里的患者加进来，按姓名自动去重）`
+        );
+        mode = choice ? 'replace' : 'merge';
+      }
+
+      try {
+        if (mode === 'replace') {
+          data = { fixed: fixed, invisible: invisible };
+          if (importedTags && Array.isArray(importedTags) && importedTags.length > 0) {
+            TAGS = importedTags;
+            saveTags();
+            renderTagFilterBar();
+            renderTagSelector();
+          }
+        } else {
+          mergePatients('fixed', fixed);
+          mergePatients('invisible', invisible);
+        }
+        saveData();
+        renderList();
+        const finalCount = (data.fixed || []).length + (data.invisible || []).length;
+        alert(`导入成功！当前共 ${finalCount} 名患者。`);
+      } catch (err) {
+        alert('导入失败：' + err.message);
+      }
+      fileInput.value = '';
+    };
+    reader.onerror = function() {
+      alert('读取文件失败，请重试。');
+      fileInput.value = '';
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // 合并去重（同分类下姓名相同则跳过）
+  function mergePatients(type, incoming) {
+    if (!data[type]) data[type] = [];
+    const existingNames = new Set(data[type].map(p => (p.name || '').trim()));
+    let added = 0;
+    incoming.forEach(p => {
+      const name = (p.name || '').trim();
+      if (!name) return;
+      if (existingNames.has(name)) return;
+      existingNames.add(name);
+      data[type].push(p);
+      added++;
+    });
+    return added;
   }
 
   // Modal helpers
