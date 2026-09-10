@@ -4,6 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>正畸患者复诊管理</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -311,6 +314,45 @@
   .save-indicator.show { opacity: 1; transform: translateY(0); }
   .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
+  /* Version badge */
+  .version-badge {
+    position: absolute; top: 16px; right: 20px;
+    background: rgba(255,255,255,0.22);
+    color: #fff; font-size: 12px; font-weight: 600;
+    padding: 4px 11px; border-radius: 999px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.3);
+    letter-spacing: 0.3px; z-index: 2;
+  }
+
+  /* Changelog banner */
+  .changelog-banner {
+    display: none;
+    align-items: flex-start; gap: 12px;
+    background: linear-gradient(135deg, #EEF2FF 0%, #ECFDF5 100%);
+    border: 1px solid #C7D2FE;
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    animation: slideDown 0.35s ease;
+  }
+  .changelog-banner.show { display: flex; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .changelog-icon { font-size: 20px; line-height: 1.4; flex-shrink: 0; }
+  .changelog-body { flex: 1; min-width: 0; }
+  .changelog-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+  .changelog-text { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+  .changelog-date { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .changelog-close {
+    flex-shrink: 0; border: none; background: transparent;
+    color: var(--text-muted); font-size: 20px; line-height: 1;
+    cursor: pointer; padding: 0 2px; border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .changelog-close:hover { color: var(--text); background: rgba(0,0,0,0.05); }
+
   /* Modal */
   .modal-mask {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -471,6 +513,7 @@
 <div class="container">
   <!-- Header -->
   <div class="header">
+    <span class="version-badge" id="versionBadge">v1.0</span>
     <h1 class="header-title">🦷 正畸患者复诊管理</h1>
     <p class="header-subtitle">实时跟踪复诊时间，智能提醒，一目了然</p>
     <div class="header-stats">
@@ -480,6 +523,17 @@
       <div class="stat-card"><div class="stat-num success" id="statNormal">0</div><div class="stat-label">正常</div></div>
       <div class="stat-card"><div class="stat-num gray" id="statFinished">0</div><div class="stat-label">已结束</div></div>
     </div>
+  </div>
+
+  <!-- Changelog banner (only shows latest update) -->
+  <div class="changelog-banner" id="changelogBanner">
+    <div class="changelog-icon">🆕</div>
+    <div class="changelog-body">
+      <div class="changelog-title" id="changelogTitle">新版本</div>
+      <div class="changelog-text" id="changelogText"></div>
+      <div class="changelog-date" id="changelogDate"></div>
+    </div>
+    <button class="changelog-close" onclick="dismissChangelog()" title="知道了">×</button>
   </div>
 
   <!-- Toolbar -->
@@ -761,6 +815,57 @@
 
   const STORAGE_KEY = 'ortho_patients_v2';
   const TAGS_STORAGE_KEY = 'ortho_tags_v1';
+
+  // ========== 版本与更新日志 ==========
+  // 每次更新功能时：VERSION 递增，并把本次更新写入 CHANGELOG 最上方
+  const VERSION = 'v1.3';
+  const VERSION_SEEN_KEY = 'ortho_version_seen';
+  const CHANGELOG = [
+    {
+      version: 'v1.3',
+      date: '2026-09-10',
+      items: [
+        '新增「💾 备份数据 / 📂 导入数据」，换电脑或重装也能完整恢复患者资料',
+        '「完成复诊」时可填写本次备注，自动记入复诊历史',
+        '新用户打开即为空白，可点「先看示例」体验（示例均为虚构数据）',
+        '新增版本号与更新提示，功能更新后刷新即可自动获得新版'
+      ]
+    }
+    // 以后的更新记录按此格式往下追加即可：
+    // { version: 'v1.4', date: '2026-xx-xx', items: ['...'] }
+  ];
+
+  function initVersionAndChangelog() {
+    // 显示版本号
+    const badge = document.getElementById('versionBadge');
+    if (badge) badge.textContent = VERSION;
+
+    const latest = CHANGELOG[0];
+    if (!latest) return;
+
+    let seenVersion = null;
+    try { seenVersion = localStorage.getItem(VERSION_SEEN_KEY); } catch (e) {}
+
+    // 首次访问（从没记录过版本）不弹更新日志，只标记当前版本
+    if (seenVersion === null) {
+      try { localStorage.setItem(VERSION_SEEN_KEY, VERSION); } catch (e) {}
+      return;
+    }
+
+    // 只有当当前版本比上次见到的版本新时，才显示更新日志
+    if (seenVersion !== VERSION) {
+      document.getElementById('changelogTitle').textContent = `🆕 更新到 ${latest.version}`;
+      document.getElementById('changelogText').innerHTML =
+        latest.items.map(t => `· ${t}`).join('<br>');
+      document.getElementById('changelogDate').textContent = `更新日期：${latest.date}`;
+      document.getElementById('changelogBanner').classList.add('show');
+      try { localStorage.setItem(VERSION_SEEN_KEY, VERSION); } catch (e) {}
+    }
+  }
+
+  function dismissChangelog() {
+    document.getElementById('changelogBanner').classList.remove('show');
+  }
 
   // ========== 工具函数 ==========
   function today() {
@@ -1535,6 +1640,7 @@
   const hadSavedData = loadData();
   renderTagFilterBar();
   renderList();
+  initVersionAndChangelog();
 
   // 首次使用（无任何存档）显示欢迎引导
   try {
