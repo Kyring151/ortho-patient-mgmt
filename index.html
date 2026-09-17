@@ -230,6 +230,64 @@
     font-size: 14px; font-weight: 700; color: var(--text);
     min-width: 90px; flex-shrink: 0;
   }
+
+  /* Avatar */
+  .patient-avatar {
+    position: relative;
+    width: 38px; height: 38px; border-radius: 50%;
+    flex-shrink: 0; overflow: hidden; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, #818CF8, #6366F1);
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .patient-avatar.gender-male { background: linear-gradient(135deg, #60A5FA, #3B82F6); }
+  .patient-avatar.gender-female { background: linear-gradient(135deg, #F472B6, #EC4899); }
+  .patient-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .patient-avatar:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(99,102,241,0.35); }
+  .patient-avatar .avatar-cam {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.45); color: #fff; font-size: 14px;
+    opacity: 0; transition: opacity 0.15s ease;
+  }
+  .patient-avatar:hover .avatar-cam { opacity: 1; }
+
+  .gender-icon { font-size: 13px; font-weight: 700; margin-left: 2px; }
+  .gender-icon.male { color: #3B82F6; }
+  .gender-icon.female { color: #EC4899; }
+
+  /* Modal: avatar editor */
+  .avatar-edit-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .avatar-lg {
+    width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 26px; font-weight: 700;
+    background: linear-gradient(135deg, #818CF8, #6366F1);
+    border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .avatar-lg.gender-male { background: linear-gradient(135deg, #60A5FA, #3B82F6); }
+  .avatar-lg.gender-female { background: linear-gradient(135deg, #F472B6, #EC4899); }
+  .avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-edit-ops { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .avatar-edit-hint { font-size: 11px; color: var(--text-muted); }
+  .btn-sm { padding: 5px 12px !important; font-size: 12px !important; }
+
+  /* Modal: two-column row */
+  .form-row-2 { display: flex; gap: 12px; }
+  .form-row-2 .form-group { flex: 1; min-width: 0; }
+
+  /* Gender selector */
+  .gender-selector { display: flex; gap: 8px; }
+  .gender-btn {
+    flex: 1; padding: 8px 0; border: 1.5px solid var(--border, #E5E7EB);
+    border-radius: 8px; background: #fff; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--text-secondary, #6B7280);
+    font-family: inherit; transition: all 0.15s ease;
+  }
+  .gender-btn:hover { border-color: #C7D2FE; }
+  .gender-btn.active[data-gender="male"] { background: #EFF6FF; border-color: #3B82F6; color: #2563EB; }
+  .gender-btn.active[data-gender="female"] { background: #FDF2F8; border-color: #EC4899; color: #DB2777; }
   .status-badge {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 60px; padding: 3px 8px; border-radius: 6px;
@@ -512,10 +570,13 @@
     .stat-num { font-size: 18px; }
     .toolbar { flex-direction: column; }
     .toolbar-right { justify-content: center; }
-    .patient-card { gap: 8px; padding: 8px 10px; }
-    .patient-name { min-width: 70px; font-size: 13px; }
+    .patient-card { gap: 8px; padding: 8px 10px; height: 48px; }
+    .patient-avatar { width: 32px; height: 32px; font-size: 13px; }
+    .patient-name { min-width: 60px; font-size: 13px; }
     .date-editor input { width: 95px; font-size: 12px; }
     .days-remaining { min-width: 60px; font-size: 10px; padding: 2px 6px; }
+    .form-row-2 { flex-direction: column; gap: 0; }
+    .status-badge { min-width: 48px; font-size: 10px; padding: 3px 6px; }
   }
 
   /* Print */
@@ -617,6 +678,9 @@
   <div class="patient-list" id="patientList"></div>
 </div>
 
+<!-- 行内快捷上传头像 -->
+<input type="file" id="rowAvatarFile" accept="image/*" style="display:none;" onchange="handleRowAvatar(event)">
+
 <!-- Save indicator -->
 <div class="save-indicator" id="saveIndicator">
   <span class="save-dot"></span><span>已自动保存</span>
@@ -630,9 +694,33 @@
       <button class="modal-close" onclick="closeModal('patientModal')">×</button>
     </div>
     <div class="modal-body">
+      <div class="avatar-edit-row">
+        <div class="avatar-lg" id="editAvatarPreview">
+          <span id="editAvatarInitial">?</span>
+        </div>
+        <div class="avatar-edit-ops">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('avatarFile').click()">📷 上传头像</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="removeAvatarBtn" onclick="removeEditAvatar()" style="display:none;">移除头像</button>
+          <div class="avatar-edit-hint">建议上传正方形照片</div>
+        </div>
+        <input type="file" id="avatarFile" accept="image/*" style="display:none;" onchange="handleEditAvatar(event)">
+      </div>
       <div class="form-group">
         <label>患者姓名</label>
-        <input type="text" id="inputName" placeholder="请输入姓名">
+        <input type="text" id="inputName" placeholder="请输入姓名" oninput="updateAvatarInitial()">
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>性别</label>
+          <div class="gender-selector" id="genderSelector">
+            <button type="button" class="gender-btn" data-gender="male" onclick="selectGender('male')">♂ 男</button>
+            <button type="button" class="gender-btn" data-gender="female" onclick="selectGender('female')">♀ 女</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>手机号</label>
+          <input type="tel" id="inputPhone" placeholder="选填，便于联系患者" maxlength="20">
+        </div>
       </div>
       <div class="form-group">
         <label>下次复诊日期</label>
@@ -641,10 +729,10 @@
       <div class="form-group">
         <label>复诊周期</label>
         <div class="cycle-selector" id="cycleSelector">
-          <button class="cycle-btn" data-weeks="1" onclick="selectCycle(1)">1周</button>
-          <button class="cycle-btn" data-weeks="2" onclick="selectCycle(2)">2周</button>
-          <button class="cycle-btn active" data-weeks="4" onclick="selectCycle(4)">4周</button>
-          <button class="cycle-btn" data-weeks="8" onclick="selectCycle(8)">8周</button>
+          <button type="button" class="cycle-btn" data-days="7" onclick="selectCycle(7)">1周</button>
+          <button type="button" class="cycle-btn" data-days="14" onclick="selectCycle(14)">2周</button>
+          <button type="button" class="cycle-btn active" data-days="30" onclick="selectCycle(30)">30天</button>
+          <button type="button" class="cycle-btn" data-days="60" onclick="selectCycle(60)">60天</button>
         </div>
       </div>
       <div class="form-group">
@@ -681,10 +769,10 @@
       <div class="form-group" style="margin-bottom:12px;">
         <label>下次复诊周期</label>
         <div class="cycle-selector" id="completeCycleSelector">
-          <button class="cycle-btn" data-weeks="1" onclick="selectCompleteCycle(1)">1周</button>
-          <button class="cycle-btn" data-weeks="2" onclick="selectCompleteCycle(2)">2周</button>
-          <button class="cycle-btn active" data-weeks="4" onclick="selectCompleteCycle(4)">4周</button>
-          <button class="cycle-btn" data-weeks="8" onclick="selectCompleteCycle(8)">8周</button>
+          <button type="button" class="cycle-btn" data-days="7" onclick="selectCompleteCycle(7)">1周</button>
+          <button type="button" class="cycle-btn" data-days="14" onclick="selectCompleteCycle(14)">2周</button>
+          <button type="button" class="cycle-btn active" data-days="30" onclick="selectCompleteCycle(30)">30天</button>
+          <button type="button" class="cycle-btn" data-days="60" onclick="selectCompleteCycle(60)">60天</button>
         </div>
       </div>
       <div class="form-group" style="margin-bottom:12px;">
@@ -809,27 +897,27 @@
     const t = today();
     const d = offset => { const x = new Date(t); x.setDate(x.getDate() + offset); return formatDateStr(x); };
     const mk = (name, nextDate, tags, note, extra) => Object.assign(
-      { name: name, nextDate: nextDate, note: note || '', cycleWeeks: 4, tags: tags || [], finished: false, history: [] },
+      { name: name, gender: '', phone: '', avatar: '', nextDate: nextDate, note: note || '', cycleDays: 30, tags: tags || [], finished: false, history: [] },
       extra || {}
     );
     return {
       fixed: [
-        mk('张伟', d(-8), ['tag_fixed_adult'], '超期未到，需电话联系', { history: [ { visitDate: d(-36), nextDate: d(-8), cycleWeeks: 4, note: '更换镍钛圆丝，轻度加力' } ] }),
-        mk('王芳', d(-2), ['tag_fixed_teen'], ''),
-        mk('李娜', d(3), ['tag_fixed_teen'], ''),
-        mk('刘洋', d(6), ['tag_anterior_traction'], '前方牵引中'),
-        mk('陈静', d(15), ['tag_fixed_adult'], ''),
-        mk('杨磊', d(28), ['tag_fixed_teen'], ''),
-        mk('赵敏', '', [], '', { finished: true }),
-        mk('黄强', d(45), ['tag_fixed_expansion'], '固定扩弓')
+        mk('张伟', d(-8), ['tag_fixed_adult'], '超期未到，需电话联系', { gender: 'male', phone: '13800000001', history: [ { visitDate: d(-38), nextDate: d(-8), cycleDays: 30, note: '更换镍钛圆丝，轻度加力' } ] }),
+        mk('王芳', d(-2), ['tag_fixed_teen'], '', { gender: 'female' }),
+        mk('李娜', d(3), ['tag_fixed_teen'], '', { gender: 'female' }),
+        mk('刘洋', d(6), ['tag_anterior_traction'], '前方牵引中', { gender: 'male' }),
+        mk('陈静', d(15), ['tag_fixed_adult'], '', { gender: 'female' }),
+        mk('杨磊', d(28), ['tag_fixed_teen'], '', { gender: 'male' }),
+        mk('赵敏', '', [], '', { gender: 'female', finished: true }),
+        mk('黄强', d(45), ['tag_fixed_expansion'], '固定扩弓', { gender: 'male' })
       ],
       invisible: [
-        mk('周杰', d(-5), ['tag_invisible_adult'], ''),
-        mk('吴婷', d(2), ['tag_invisible_teen'], ''),
-        mk('徐涛', d(12), ['tag_invisible_adult'], ''),
-        mk('孙丽', d(33), ['tag_invisible_teen'], '佩戴配合度好'),
-        mk('马超', '', ['tag_invisible_adult'], '', { finished: true }),
-        mk('朱琳', d(21), ['tag_invisible_adult'], '', { cycleWeeks: 8 })
+        mk('周杰', d(-5), ['tag_invisible_adult'], '', { gender: 'male' }),
+        mk('吴婷', d(2), ['tag_invisible_teen'], '', { gender: 'female' }),
+        mk('徐涛', d(12), ['tag_invisible_adult'], '', { gender: 'male' }),
+        mk('孙丽', d(33), ['tag_invisible_teen'], '佩戴配合度好', { gender: 'female' }),
+        mk('马超', '', ['tag_invisible_adult'], '', { gender: 'male', finished: true }),
+        mk('朱琳', d(21), ['tag_invisible_adult'], '', { gender: 'female', cycleDays: 60 })
       ]
     };
   }
@@ -842,7 +930,8 @@
   let editingIndex = -1;
   let selectedTags = [];
   let completePatientIndex = -1;
-  let completeCycleWeeks = 4;
+  let completeCycleDays = 30;
+  let rowAvatarTargetIndex = -1;
 
   const STORAGE_KEY = 'ortho_patients_v2';
   const TAGS_STORAGE_KEY = 'ortho_tags_v1';
@@ -928,6 +1017,29 @@
     d.setDate(d.getDate() + weeks * 7);
     return formatDateStr(d);
   }
+  function addDays(dateStr, days) {
+    const d = parseDate(dateStr) || new Date();
+    d.setDate(d.getDate() + Number(days || 0));
+    return formatDateStr(d);
+  }
+  // 兼容旧数据：优先 cycleDays，老版本的 cycleWeeks(周) 自动换算
+  function getCycleDays(p) {
+    if (p && p.cycleDays != null) return Number(p.cycleDays);
+    if (p && p.cycleWeeks != null) return Number(p.cycleWeeks) * 7;
+    return 30;
+  }
+  function getHistoryCycleDays(h) {
+    if (!h) return null;
+    if (h.cycleDays != null) return Number(h.cycleDays);
+    if (h.cycleWeeks != null) return Number(h.cycleWeeks) * 7;
+    return null;
+  }
+  function formatCycle(days) {
+    if (days == null) return '';
+    if (days === 7) return '1周';
+    if (days === 14) return '2周';
+    return `${days}天`;
+  }
   function daysDiff(dateStr) {
     const d = parseDate(dateStr);
     if (!d) return null;
@@ -973,6 +1085,28 @@
   function saveTags() {
     try { localStorage.setItem(TAGS_STORAGE_KEY, JSON.stringify(TAGS)); } catch (e) {}
   }
+  // 规范化单个患者数据（兼容旧版本，自动补全新字段）
+  function normalizePatient(p) {
+    if (!p || typeof p !== 'object') return p;
+    if (p.gender === undefined) p.gender = '';
+    if (p.phone === undefined) p.phone = '';
+    if (p.avatar === undefined) p.avatar = '';
+    if (p.cycleDays === undefined) {
+      // 老数据用 cycleWeeks（周），自动换算成天数
+      p.cycleDays = (p.cycleWeeks != null) ? Number(p.cycleWeeks) * 7 : 30;
+    }
+    if (!Array.isArray(p.tags)) p.tags = [];
+    if (!Array.isArray(p.history)) p.history = [];
+    if (typeof p.finished !== 'boolean') p.finished = !!p.finished;
+    return p;
+  }
+  function normalizeAll() {
+    ['fixed', 'invisible'].forEach(t => {
+      if (!Array.isArray(data[t])) data[t] = [];
+      data[t].forEach(normalizePatient);
+    });
+  }
+
   function loadData() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -980,6 +1114,7 @@
         const d = JSON.parse(saved);
         if (d.fixed && d.invisible) {
           data = d;
+          normalizeAll();
           return true;
         }
       }
@@ -1006,7 +1141,12 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       showSaveTip();
-    } catch (e) { console.warn('保存失败:', e); }
+    } catch (e) {
+      console.warn('保存失败:', e);
+      if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
+        alert('本地存储空间不足，保存失败。\n\n通常是头像图片过多导致的，建议：\n1. 减少头像数量，或\n2. 点击「💾 备份数据」导出备份后清理浏览器缓存');
+      }
+    }
   }
   function showSaveTip() {
     const tip = document.getElementById('saveIndicator');
@@ -1138,7 +1278,11 @@
     const search = document.getElementById('searchInput').value.trim().toLowerCase();
 
     let filtered = list.filter(p => {
-      if (search && !p.name.toLowerCase().includes(search)) return false;
+      if (search) {
+        const inName = (p.name || '').toLowerCase().includes(search);
+        const inPhone = (p.phone || '').toLowerCase().includes(search);
+        if (!inName && !inPhone) return false;
+      }
       const status = getStatus(p);
       if (currentFilter === 'overdue' && status !== 'danger') return false;
       if (currentFilter === 'soon' && status !== 'warning') return false;
@@ -1208,6 +1352,20 @@
         const displayTags = tags.slice(0, 2);
         const moreCount = tags.length - 2;
 
+        // 头像
+        const genderClass = p.gender === 'male' ? 'gender-male' : (p.gender === 'female' ? 'gender-female' : '');
+        const initial = (p.name || '?').trim().charAt(0) || '?';
+        const phoneTip = p.phone ? `｜📞 ${p.phone}` : '';
+        const avatarInner = p.avatar
+          ? `<img src="${p.avatar}" alt="">`
+          : `<span>${initial}</span>`;
+        const avatarHtml = `<div class="patient-avatar ${genderClass}" onclick="triggerRowAvatarUpload(${realIndex})" title="点击上传头像">${avatarInner}<span class="avatar-cam">📷</span></div>`;
+
+        // 性别标识
+        const genderIcon = p.gender === 'male'
+          ? '<span class="gender-icon male">♂</span>'
+          : (p.gender === 'female' ? '<span class="gender-icon female">♀</span>' : '');
+
         let tagsHtml = '';
         if (tags.length > 0) {
           tagsHtml = '<div class="card-tags">';
@@ -1223,7 +1381,8 @@
 
         return `
           <div class="patient-card status-${status}">
-            <div class="patient-name">${p.name}</div>
+            ${avatarHtml}
+            <div class="patient-name" title="${(p.name || '').replace(/"/g, '&quot;')}${phoneTip}">${p.name}${genderIcon}</div>
             <span class="status-badge ${status}">${statusText}</span>
             <span class="date-editor ${dateClass}">
               <input type="date" value="${p.nextDate || ''}" 
@@ -1315,12 +1474,18 @@
   function showAddModal() {
     editingIndex = -1;
     selectedTags = [];
+    window._editCycleDays = 30;
+    window._editGender = '';
+    window._editAvatar = '';
     document.getElementById('modalTitle').textContent = '添加患者';
     document.getElementById('inputName').value = '';
     document.getElementById('inputDate').value = '';
     document.getElementById('inputNote').value = '';
+    document.getElementById('inputPhone').value = '';
     document.getElementById('finishBtn').style.display = 'none';
-    selectCycle(4);
+    selectCycle(30);
+    selectGender('');
+    renderEditAvatar();
     renderTagSelector();
     openModal('patientModal');
     setTimeout(() => document.getElementById('inputName').focus(), 100);
@@ -1330,22 +1495,113 @@
     const p = data[currentType][idx];
     editingIndex = idx;
     selectedTags = [...(p.tags || [])];
+    window._editCycleDays = getCycleDays(p);
+    window._editGender = p.gender || '';
+    window._editAvatar = p.avatar || '';
     document.getElementById('modalTitle').textContent = '编辑患者';
     document.getElementById('inputName').value = p.name;
     document.getElementById('inputDate').value = p.nextDate || '';
     document.getElementById('inputNote').value = p.note || '';
+    document.getElementById('inputPhone').value = p.phone || '';
     document.getElementById('finishBtn').style.display = p.finished ? 'none' : 'inline-flex';
     document.getElementById('finishBtn').textContent = p.finished ? '' : '结束治疗';
-    selectCycle(p.cycleWeeks || 4);
+    selectCycle(getCycleDays(p));
+    selectGender(p.gender || '');
+    renderEditAvatar();
     renderTagSelector();
     openModal('patientModal');
   }
 
-  function selectCycle(weeks) {
+  function selectCycle(days) {
     document.querySelectorAll('#cycleSelector .cycle-btn').forEach(b => {
-      b.classList.toggle('active', parseInt(b.dataset.weeks) === weeks);
+      b.classList.toggle('active', parseInt(b.dataset.days) === days);
     });
-    window._editCycleWeeks = weeks;
+    window._editCycleDays = days;
+  }
+
+  function selectGender(gender) {
+    window._editGender = gender || '';
+    document.querySelectorAll('#genderSelector .gender-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.gender === gender);
+    });
+    renderEditAvatar();
+  }
+
+  // ========== 头像处理（自动居中裁剪 + 压缩，避免本地存储过大） ==========
+  function compressImage(file, callback) {
+    if (!file || !file.type.startsWith('image/')) { alert('请选择图片文件（JPG/PNG 等）'); callback(null); return; }
+    if (file.size > 15 * 1024 * 1024) { alert('图片太大了，请选择 15MB 以内的图片'); callback(null); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 160;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        // 居中正方形裁剪
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        callback(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { alert('图片读取失败，请换一张试试'); callback(null); };
+      img.src = e.target.result;
+    };
+    reader.onerror = () => { alert('文件读取失败'); callback(null); };
+    reader.readAsDataURL(file);
+  }
+
+  function renderEditAvatar() {
+    const box = document.getElementById('editAvatarPreview');
+    if (!box) return;
+    const gender = window._editGender || '';
+    box.className = 'avatar-lg' + (gender ? ' gender-' + gender : '');
+    const name = (document.getElementById('inputName').value || '').trim();
+    const initial = name.charAt(0) || '?';
+    box.innerHTML = window._editAvatar
+      ? `<img src="${window._editAvatar}" alt="">`
+      : `<span id="editAvatarInitial">${initial}</span>`;
+    const removeBtn = document.getElementById('removeAvatarBtn');
+    if (removeBtn) removeBtn.style.display = window._editAvatar ? 'inline-flex' : 'none';
+  }
+  function updateAvatarInitial() { renderEditAvatar(); }
+
+  function handleEditAvatar(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    compressImage(file, dataUrl => {
+      if (dataUrl) {
+        window._editAvatar = dataUrl;
+        renderEditAvatar();
+      }
+      event.target.value = '';
+    });
+  }
+  function removeEditAvatar() {
+    window._editAvatar = '';
+    renderEditAvatar();
+  }
+
+  // 列表行内快捷上传头像
+  function triggerRowAvatarUpload(idx) {
+    rowAvatarTargetIndex = idx;
+    const input = document.getElementById('rowAvatarFile');
+    input.value = '';
+    input.click();
+  }
+  function handleRowAvatar(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file || rowAvatarTargetIndex < 0) return;
+    compressImage(file, dataUrl => {
+      if (dataUrl) {
+        const p = data[currentType][rowAvatarTargetIndex];
+        if (p) { p.avatar = dataUrl; renderList(); saveData(); }
+      }
+      event.target.value = '';
+      rowAvatarTargetIndex = -1;
+    });
   }
 
   function toggleFinish() {
@@ -1362,18 +1618,25 @@
     const name = document.getElementById('inputName').value.trim();
     const date = document.getElementById('inputDate').value;
     const note = document.getElementById('inputNote').value.trim();
-    const cycleWeeks = window._editCycleWeeks || 4;
+    const phone = document.getElementById('inputPhone').value.trim();
+    const cycleDays = window._editCycleDays || 30;
+    const gender = window._editGender || '';
+    const avatar = window._editAvatar || '';
 
     if (!name) { alert('请输入患者姓名'); return; }
 
+    const old = editingIndex >= 0 ? data[currentType][editingIndex] : null;
     const patient = {
       name,
+      gender,
+      phone,
+      avatar,
       nextDate: date,
       note,
-      cycleWeeks,
+      cycleDays,
       tags: [...selectedTags],
-      finished: editingIndex >= 0 ? data[currentType][editingIndex].finished : false,
-      history: editingIndex >= 0 ? (data[currentType][editingIndex].history || []) : []
+      finished: old ? old.finished : false,
+      history: old ? (old.history || []) : []
     };
 
     if (editingIndex >= 0) {
@@ -1399,18 +1662,18 @@
   function showCompleteModal(idx) {
     completePatientIndex = idx;
     const p = data[currentType][idx];
-    completeCycleWeeks = p.cycleWeeks || 4;
+    completeCycleDays = getCycleDays(p);
 
     // 本次日期默认今天
     document.getElementById('completeVisitDate').value = formatDateStr(today());
 
     // 周期按钮
     document.querySelectorAll('#completeCycleSelector .cycle-btn').forEach(b => {
-      b.classList.toggle('active', parseInt(b.dataset.weeks) === completeCycleWeeks);
+      b.classList.toggle('active', parseInt(b.dataset.days) === completeCycleDays);
     });
 
     // 下次日期 = 今天 + 周期
-    const nextDate = addWeeks(today(), completeCycleWeeks);
+    const nextDate = addDays(today(), completeCycleDays);
     document.getElementById('completeNextDate').value = nextDate;
 
     // 清空上次备注
@@ -1419,14 +1682,14 @@
     openModal('completeModal');
   }
 
-  function selectCompleteCycle(weeks) {
-    completeCycleWeeks = weeks;
+  function selectCompleteCycle(days) {
+    completeCycleDays = days;
     document.querySelectorAll('#completeCycleSelector .cycle-btn').forEach(b => {
-      b.classList.toggle('active', parseInt(b.dataset.weeks) === weeks);
+      b.classList.toggle('active', parseInt(b.dataset.days) === days);
     });
     const visitDate = document.getElementById('completeVisitDate').value;
     if (visitDate) {
-      document.getElementById('completeNextDate').value = addWeeks(visitDate, weeks);
+      document.getElementById('completeNextDate').value = addDays(visitDate, days);
     }
   }
 
@@ -1442,12 +1705,12 @@
     p.history.unshift({
       visitDate: visitDate,
       nextDate: nextDate || '',
-      cycleWeeks: completeCycleWeeks,
+      cycleDays: completeCycleDays,
       note: note
     });
     // 更新下次日期和周期
     p.nextDate = nextDate || '';
-    p.cycleWeeks = completeCycleWeeks;
+    p.cycleDays = completeCycleDays;
 
     closeModal('completeModal');
     renderList();
@@ -1461,7 +1724,7 @@
       visitDateInput.addEventListener('change', () => {
         const v = visitDateInput.value;
         if (v) {
-          document.getElementById('completeNextDate').value = addWeeks(v, completeCycleWeeks);
+          document.getElementById('completeNextDate').value = addDays(v, completeCycleDays);
         }
       });
     }
@@ -1478,15 +1741,17 @@
     if (history.length === 0) {
       list.innerHTML = '<div class="history-empty">暂无复诊记录<br><span style="font-size:12px;">点击「完成复诊」后会自动记录</span></div>';
     } else {
-      list.innerHTML = history.map((h, i) => `
+      list.innerHTML = history.map((h, i) => {
+        const cDays = getHistoryCycleDays(h);
+        return `
         <div class="history-item">
           <div>
             <div class="history-date">第 ${history.length - i} 次 · ${h.visitDate || '未知日期'}</div>
-            <div class="history-next">下次复诊：${h.nextDate || '未设置'}${h.cycleWeeks ? `（${h.cycleWeeks}周周期）` : ''}</div>
+            <div class="history-next">下次复诊：${h.nextDate || '未设置'}${cDays ? `（${formatCycle(cDays)}周期）` : ''}</div>
             ${h.note ? `<div class="history-note">📝 ${h.note}</div>` : ''}
           </div>
         </div>
-      `).join('');
+      `; }).join('');
     }
     openModal('historyModal');
   }
@@ -1509,13 +1774,16 @@
       else daysText = `超期${Math.abs(days)}天`;
 
       const tagNames = (p.tags || []).map(tid => getTagName(tid)).join('、');
+      const genderText = p.gender === 'male' ? '男' : (p.gender === 'female' ? '女' : '');
 
       return {
         '姓名': p.name,
+        '性别': genderText,
+        '手机号': p.phone || '',
         '状态': statusText,
         '下次复诊日期': p.nextDate || '',
         '剩余天数': daysText,
-        '复诊周期': p.cycleWeeks ? `${p.cycleWeeks}周` : '',
+        '复诊周期': formatCycle(getCycleDays(p)),
         '标签': tagNames,
         '复诊次数': (p.history || []).length,
         '备注': p.note || '',
@@ -1619,6 +1887,7 @@
       try {
         if (mode === 'replace') {
           data = { fixed: fixed, invisible: invisible };
+          normalizeAll();
           if (importedTags && Array.isArray(importedTags) && importedTags.length > 0) {
             TAGS = importedTags;
             saveTags();
@@ -1655,7 +1924,7 @@
       if (!name) return;
       if (existingNames.has(name)) return;
       existingNames.add(name);
-      data[type].push(p);
+      data[type].push(normalizePatient(p));
       added++;
     });
     return added;
