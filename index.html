@@ -938,9 +938,19 @@
 
   // ========== 版本与更新日志 ==========
   // 每次更新功能时：VERSION 递增，并把本次更新写入 CHANGELOG 最上方
-  const VERSION = 'v1.4';
+  const VERSION = 'v1.5';
   const VERSION_SEEN_KEY = 'ortho_version_seen';
   const CHANGELOG = [
+    {
+      version: 'v1.5',
+      date: '2026-09-17',
+      items: [
+        '每位患者新增圆形头像：点击头像即可上传照片，自动裁剪压缩，备份时一并保存',
+        '患者信息新增「性别」与「手机号」，列表显示性别标识，搜索框也支持手机号查找',
+        '复诊周期调整为 1周 / 2周 / 30天 / 60天，默认 30天；旧数据会自动换算无需手动改',
+        '导出 Excel 同步增加性别、手机号两列'
+      ]
+    },
     {
       version: 'v1.4',
       date: '2026-09-10',
@@ -960,7 +970,7 @@
       ]
     }
     // 以后的更新记录按此格式往下追加即可：
-    // { version: 'v1.5', date: '2026-xx-xx', items: ['...'] }
+    // { version: 'v1.6', date: '2026-xx-xx', items: ['...'] }
   ];
 
   function initVersionAndChangelog() {
